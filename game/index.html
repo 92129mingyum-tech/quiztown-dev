@@ -198,7 +198,7 @@ html,body{width:100%;height:100%;margin:0;overflow:hidden!important;background:#
 body{min-width:0!important;min-height:0!important}
 #auth,#app{transform-origin:top left}
 #app{width:1280px!important;max-width:none!important;height:720px!important;margin:0!important;padding:10px 12px!important;overflow:hidden!important}
-#app main{height:calc(720px - 92px);overflow:hidden!important}
+#app main{height:577px!important;min-height:0!important;overflow:hidden!important}
 #app .screen{height:100%;min-height:0;overflow:hidden!important}
 .top{height:76px!important;margin-bottom:8px!important;padding:8px 12px!important;flex-wrap:nowrap!important}
 .brandMark{display:flex;align-items:center;gap:10px;min-width:250px}.brandMark h1{margin:0;font-size:34px;line-height:1;white-space:nowrap}.bulbQ{width:48px;height:48px;border-radius:50% 50% 44% 44%;display:grid;place-items:center;background:radial-gradient(circle at 35% 28%,#fffbd0,#ffd84a 45%,#f0a900 72%);border:3px solid #fff;box-shadow:0 0 0 3px #1178ad,0 0 18px #ffe66b;color:#0b4d78;font-size:28px;font-weight:1000;text-shadow:0 1px #fff}.bulbQ:after{content:'';position:absolute}.logo small{display:none!important}
@@ -219,8 +219,34 @@ body.qt-game-mode #shoutGameSlot{display:none!important}
 #qtForceUpdate h2{margin:0 0 10px;font-size:24px}
 #qtForceUpdate p{margin:6px 0;line-height:1.5}
 </style>
+
+<style id="qt-v135-layout-fix">
+/* DEV 1.35: one logical 1280x720 stage, including header + main + ticker */
+html,body{width:100%;height:100%;margin:0;overflow:hidden!important;background:#062b5a!important}
+body{position:relative!important;min-width:0!important;min-height:0!important}
+#app,#auth{position:fixed!important;left:50%!important;top:50%!important;width:1280px!important;height:720px!important;margin:0!important;transform-origin:center center!important}
+#app{padding:10px 12px!important}
+#app main{height:577px!important;min-height:0!important;overflow:hidden!important}
+#channel{grid-template-rows:104px minmax(0,1fr)!important;min-height:0!important}
+#channel>.panel:first-child{height:104px!important;min-height:0!important}
+.lobbyGrid{height:auto!important;min-height:0!important;grid-template-columns:minmax(0,1fr) 340px!important}
+.sideStack{height:100%!important;min-height:0!important;grid-template-rows:205px minmax(0,1fr)!important}
+.sideStack>.panel{min-height:0!important;overflow:hidden!important}
+.sideStack>.panel:last-child{display:flex!important;flex-direction:column!important}
+.sideStack>.panel:last-child>h3{flex:0 0 auto!important}
+.sideStack>.panel:last-child>.chat{flex:1 1 auto!important;min-height:0!important;margin-top:8px!important}
+.chatLog{flex:1 1 auto!important;min-height:0!important;height:auto!important}
+.shoutBar,.chatForm{flex:0 0 auto!important}
+.channelTabs{flex-wrap:nowrap!important;gap:10px!important}
+.channelTabs button{min-width:190px!important;background:#eaf7ff!important;color:#17496a!important;border:2px solid #64bde5!important;box-shadow:none!important;font-size:15px!important;font-weight:1000!important;opacity:1!important}
+.channelTabs button.active{background:#19a7e8!important;color:#fff!important;border-color:#78d6ff!important;box-shadow:0 3px 0 #0874aa!important}
+#qtClientVersion{position:fixed;right:12px;bottom:7px;z-index:2147483646;color:rgba(255,255,255,.72);font:700 11px/1.2 Arial,'Malgun Gothic',sans-serif;text-shadow:0 1px 2px #001b3c;pointer-events:none}
+#qtForceUpdate .patchTrack{height:12px;margin:16px 0 8px;background:#dbe7ef;border-radius:99px;overflow:hidden}
+#qtForceUpdate .patchTrack i{display:block;width:0;height:100%;background:#18a7e8;transition:width .2s ease}
+#qtForceUpdate .patchMeta{font-size:12px;color:#607486;min-height:18px}
+</style>
 </head><body>
-<div id="qtForceUpdate" class="hidden"><div class="box"><div class="q">Q</div><h2>퀴즈타운 업데이트</h2><p>새로운 업데이트가 적용되었습니다.</p><p id="qtForceUpdateText">접속을 종료하고 최신 버전을 적용합니다.</p><p><b>업데이트 후 자동으로 다시 실행됩니다.</b></p></div></div>
+<div id="qtForceUpdate" class="hidden"><div class="box"><div class="q">Q</div><h2>퀴즈타운 업데이트</h2><p>새로운 패치를 준비하고 있습니다.</p><p id="qtForceUpdateText">패치 목록을 확인하고 있습니다...</p><div class="patchTrack"><i id="qtPatchBar"></i></div><p id="qtPatchMeta" class="patchMeta"></p><p><b>완료되면 퀴즈타운이 자동으로 다시 실행됩니다.</b></p></div></div>
 
 <div id="auth" class="authWrap"><div class="authCard"><div class="brandMark" aria-label="QuizTown"><span class="bulbQ">Q</span><h1>퀴즈타운</h1></div><p>ONLINE QUIZ BATTLE</p><div class="tabs"><button id="loginTab">로그인</button><button id="signupTab" class="secondary">회원가입</button></div><form id="loginForm"><label>아이디<input id="loginId" autocomplete="username" required maxlength="20"></label><label>비밀번호<input id="loginPw" type="password" autocomplete="current-password" required maxlength="30"></label><label class="rememberRow"><span><input id="rememberId" type="checkbox"> 아이디 기억하기</span><span><input id="rememberPw" type="checkbox"> 비밀번호 기억하기</span></label><button>로그인</button></form><form id="signupForm" class="hidden"><label>아이디<input id="signupId" required maxlength="20"></label><label>비밀번호<input id="signupPw" type="password" required maxlength="30"></label><label>닉네임<input id="signupNick" required maxlength="10"></label><button>회원가입</button></form><div id="authMsg" class="msg"></div></div></div>
 <div id="app" class="hidden"><header class="top"><div class="logo"><div class="brandMark" aria-label="QuizTown"><span class="bulbQ">Q</span><h1>퀴즈타운</h1></div></div><div class="stats"><span id="who"></span><span>LV.<b id="lv">1</b></span><span>EXP <b id="xp">0</b>/100</span><span>🪙 <b id="coin">0</b></span><button id="profileBtn" class="secondary">내 프로필</button><button id="settingsBtn" class="secondary">⚙ 설정</button><button id="shopBtn" class="secondary">상점</button><button id="adminBtn" class="secondary hidden">관리자</button><button id="logout" class="ghost">로그아웃</button></div></header><main>
@@ -409,7 +435,7 @@ const bank=(()=>{
 const shuffle=a=>{a=[...a];for(let i=a.length-1;i;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};function show(id){screens.forEach(x=>$('#'+x).classList.toggle('hidden',x!==id))}function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function toast(message){let old=document.querySelector('.toast');if(old)old.remove();let el=document.createElement('div');el.className='toast';el.textContent=String(message||'');document.body.appendChild(el);setTimeout(()=>{if(el.isConnected)el.remove()},1800)}
 function loadAccounts(){let a=[];try{a=JSON.parse(localStorage.getItem(AK)||'[]')}catch(e){}a=a.filter(x=>x.id!=='admin');return a}function saveAccounts(a){localStorage.setItem(AK,JSON.stringify(a))}function saveCurrent(){if(!currentUser)return;let a=loadAccounts(),u=a.find(x=>x.id===currentUser.id);if(u){u.lv=state.lv;u.xp=state.xp;u.coin=state.coin;u.nick=state.name;u.inventory=state.inventory;u.equipped=state.equipped;u.consumables=state.consumables;u.friends=state.friends;u.requests=state.requests;u.profile=state.profile;u.profileMessage=state.profileMessage||'';u.ownedProfiles=state.ownedProfiles;u.premiumUntil=state.premiumUntil;u.baseGender=state.baseGender;u.scoreboard=state.scoreboard;u.ownedScoreboards=state.ownedScoreboards;u.characterSkin=state.characterSkin;u.ownedCharacters=state.ownedCharacters;u.totalGames=state.totalGames||0;u.firstWins=state.firstWins||0;saveAccounts(a);currentUser={...u};if(currentUser.online)syncProfileOnline()}}function syncUser(){state.lv=currentUser.lv??1;state.xp=currentUser.xp??0;state.coin=currentUser.coin??200;state.name=currentUser.nick;state.inventory=currentUser.inventory||[];state.equipped=(currentUser.equipped&&typeof currentUser.equipped==='object')?currentUser.equipped:{hair:null,top:null,bottom:null,shoes:null,hat:null,face:null,acc:null,effect:null};state.consumables=currentUser.consumables||{reflect:0,superhost:0};state.friends=currentUser.friends||[];state.requests=currentUser.requests||[];state.profile=currentUser.profile||'🙂';state.profileMessage=currentUser.profileMessage||'';state.ownedProfiles=currentUser.ownedProfiles||[...freeProfiles];state.premiumUntil=currentUser.premiumUntil||0;state.baseGender=currentUser.baseGender||'female';state.scoreboard=currentUser.scoreboard||'basic';state.ownedScoreboards=currentUser.ownedScoreboards||['basic'];if(!state.ownedScoreboards.includes('basic'))state.ownedScoreboards.unshift('basic');state.characterSkin=currentUser.characterSkin||'base';state.ownedCharacters=currentUser.ownedCharacters||['base','char_dongdong','char_bori'];state.totalGames=currentUser.totalGames||0;state.firstWins=currentUser.firstWins||0;state.consumables={reflect:0,superhost:0,nicknameTicket:0,hintTicket:0,resetStats:0,shout:0,...(state.consumables||{})};$('#lv').textContent=state.lv;$('#xp').textContent=state.xp;$('#coin').textContent=state.coin;$('#who').textContent=state.name+' · '+(currentUser.role==='superadmin'?'최고관리자':currentUser.role==='operator'?'운영자':'회원');$('#adminBtn').classList.toggle('hidden',!['superadmin','operator'].includes(currentUser.role));syncShoutCount?.()}
-function renderChannels(){$('#channelTabs').innerHTML=channels.map(c=>`<button class="${c.id===currentChannel?'active secondary':'secondary'}" data-ch="${c.id}">${c.name} · ${c.online}명</button>`).join('');document.querySelectorAll('[data-ch]').forEach(b=>b.onclick=()=>{clearChannelChat(currentChannel);currentChannel=+b.dataset.ch;clearChannelChat(currentChannel);renderChannels();renderLobby();if(currentUser?.online)qtStartRealtime()})}function renderLobby(){let c=channels.find(x=>x.id===currentChannel);$('#channelTitle').textContent=c.name;$('#channelCount').textContent='접속 '+(currentUser?1:0)+'명';renderRooms();renderChannelChat();renderOnlineUsers()}
+function qtCanEnterChannel(ch){if(Number(ch)!==3)return true;const games=Number(state.totalGames||0),wins=Number(state.firstWins||0),rate=games>0?wins/games:0;if(games<10){toast('초보채널은 10판 이상 플레이한 이용자만 입장할 수 있습니다.');return false}if(rate>0.20){toast('초보채널은 1등 승률 20% 이하 이용자만 입장할 수 있습니다.');return false}return true}function renderChannels(){$('#channelTabs').innerHTML=channels.map(c=>`<button class="${c.id===currentChannel?'active secondary':'secondary'}" data-ch="${c.id}">${c.name} · ${c.online}명</button>`).join('');document.querySelectorAll('[data-ch]').forEach(b=>b.onclick=()=>{const next=+b.dataset.ch;if(next===currentChannel)return;if(!qtCanEnterChannel(next))return;clearChannelChat(currentChannel);currentChannel=next;clearChannelChat(currentChannel);renderChannels();renderLobby();if(currentUser?.online)qtStartRealtime()})}function renderLobby(){let c=channels.find(x=>x.id===currentChannel);$('#channelTitle').textContent=c.name;$('#channelCount').textContent='접속 '+(currentUser?1:0)+'명';renderRooms();renderChannelChat();renderOnlineUsers()}
 function renderOnlineUsers(){
   const el=$('#onlineList'); if(!el||!currentUser)return;
   const self={name:state.name,lv:state.lv,status:state.room?'방 입장':'대기 중',avatar:state.profile||'🙂',me:true};
@@ -685,6 +711,7 @@ async function qtStopRealtime(){
 }
 async function qtCreateOnlineRoom(modeOverride){
   if(!currentUser?.online||!currentUser.uid)return toast('온라인 로그인 상태를 확인해주세요.');
+  try{await qtRequireSession()}catch{return}
   let title=$('#newTitle').value.trim()||'퀴즈방', difficulty=+$('#roomDifficulty').value||2, mode=modeOverride||$('#playMode').value||'normal', cpuCount=mode==='cpu'?(+$('#cpuCount').value||1):0, max=mode==='cpu'?10:(+$('#maxPlayers').value||10);
   let roomId=null, rpcError=null;
   const rpc=await qtSupabase.rpc('qt_create_room_v2',{p_channel:currentChannel,p_title:title,p_difficulty:difficulty,p_max_players:max,p_mode:mode,p_cpu_count:cpuCount});
@@ -771,7 +798,7 @@ show=function(id){_qt132Show(id);document.body.classList.toggle('qt-game-mode',i
 window.addEventListener('beforeunload',()=>{try{if(qtPresenceChannel)qtPresenceChannel.untrack()}catch(e){}});
 async function qtPrepareForcedUpdate(version){
   const overlay=document.getElementById('qtForceUpdate');
-  if(overlay){overlay.classList.remove('hidden');const t=document.getElementById('qtForceUpdateText');if(t)t.textContent='접속을 종료하고 최신 업데이트를 다운로드합니다.';}
+  if(overlay){overlay.classList.remove('hidden');const t=document.getElementById('qtForceUpdateText');if(t)t.textContent='패치 목록을 확인하고 있습니다...';}
   try{clearInterval(state.timer)}catch(e){}
   try{if(state.room?.online&&state.room.id)await qtSupabase.rpc('qt_leave_room',{p_room_id:state.room.id})}catch(e){console.warn('update room leave',e)}
   try{if(qtPresenceChannel)await qtPresenceChannel.untrack()}catch(e){}
@@ -793,14 +820,14 @@ async function qtPrepareForcedUpdate(version){
     if(!window.QuizTownClient) return;
     var badge=document.getElementById('qtClientStatus');
     if(badge) badge.remove();
-    window.QuizTownClient.onVersion(function(){ /* version is intentionally hidden from game UI */ });
+    window.QuizTownClient.onVersion(function(v){var el=document.getElementById('qtClientVersion');if(!el){el=document.createElement('div');el.id='qtClientVersion';document.body.appendChild(el)}el.textContent=String(v||'');});
     if(window.QuizTownClient.onForceUpdate){
       window.QuizTownClient.onForceUpdate(function(info){ qtPrepareForcedUpdate(info&&info.version); });
     }
     window.QuizTownClient.onUpdateStatus(function(s){
       if(!badge){
-        if(s.type==='progress'){var t=document.getElementById('qtForceUpdateText');if(t)t.textContent='최신 업데이트 다운로드 중 · '+s.percent+'%';}
-        if(s.type==='ready'){var t2=document.getElementById('qtForceUpdateText');if(t2)t2.textContent='업데이트 적용 중입니다. 잠시 후 다시 실행됩니다.';}
+        if(s.type==='progress'){var t=document.getElementById('qtForceUpdateText');if(t)t.textContent='업데이트 파일 다운로드 중... '+s.percent+'%';var bar=document.getElementById('qtPatchBar');if(bar)bar.style.width=s.percent+'%';var meta=document.getElementById('qtPatchMeta');if(meta&&s.total){var mb=function(n){return (Number(n||0)/1048576).toFixed(1)+' MB'};meta.textContent=mb(s.transferred)+' / '+mb(s.total);}}
+        if(s.type==='ready'){var t2=document.getElementById('qtForceUpdateText');if(t2)t2.textContent='패치를 적용하고 있습니다...';var bar2=document.getElementById('qtPatchBar');if(bar2)bar2.style.width='100%';}
         return;
       }
       badge.className='';

@@ -141,7 +141,7 @@ ipcMain.on('display-toggle-fullscreen', () => { if (mainWindow) mainWindow.setFu
 autoUpdater.on('update-available', info => {
   send('update-status', {type:'available', version:info.version, forced:true});
 });
-autoUpdater.on('download-progress', p => send('update-status', {type:'progress', percent:Math.round(p.percent)}));
+autoUpdater.on('download-progress', p => send('update-status', {type:'progress', percent:Math.round(p.percent), transferred:p.transferred, total:p.total, bytesPerSecond:p.bytesPerSecond}));
 autoUpdater.on('update-downloaded', info => {
   updateReady = true;
   downloadedUpdateInfo = info;
