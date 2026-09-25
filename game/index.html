@@ -243,12 +243,14 @@ const SUPABASE_URL="https://rjxmhvokppwkzrzbfeae.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_N5NTZbJ2xGHgZefgRFtVrA_3R18lW50";
 const qtSupabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
 async function qtPersistAuthSession(session){try{if(session?.access_token&&session?.refresh_token)await window.QuizTownClient?.saveAuthSession?.({access_token:session.access_token,refresh_token:session.refresh_token})}catch(e){console.warn('세션 보관 실패',e)}}
-async function qtRestoreAuthSession(){try{let {data}=await qtSupabase.auth.getSession();if(data?.session)return data.session;let saved=await window.QuizTownClient?.loadAuthSession?.();if(!saved?.access_token||!saved?.refresh_token)return null;let {data:setData,error}=await qtSupabase.auth.setSession(saved);if(error){await window.QuizTownClient?.clearAuthSession?.();return null}await qtPersistAuthSession(setData.session);return setData.session}catch(e){console.warn('세션 복원 실패',e);return null}}
+let qtLogoutInProgress=false;
+async function qtValidateSession(session){if(!session?.access_token)return null;let {data,error}=await qtSupabase.auth.getUser();return error||!data?.user?null:session}
+async function qtRestoreAuthSession(){try{let {data}=await qtSupabase.auth.getSession();let valid=await qtValidateSession(data?.session);if(valid)return valid;let saved=await window.QuizTownClient?.loadAuthSession?.();if(!saved?.access_token||!saved?.refresh_token)return null;let {data:setData,error}=await qtSupabase.auth.setSession(saved);let restored=error?null:await qtValidateSession(setData?.session);if(!restored){await window.QuizTownClient?.clearAuthSession?.();return null}await qtPersistAuthSession(restored);return restored}catch(e){console.warn('세션 복원 실패',e);return null}}
 async function qtRequireSession(){let session=await qtRestoreAuthSession();if(!session){toast('로그인 세션이 만료되었습니다. 다시 로그인해주세요.');throw new Error('AUTH_SESSION_MISSING')}return session}
-qtSupabase.auth.onAuthStateChange((_event,session)=>{if(session)qtPersistAuthSession(session);else window.QuizTownClient?.clearAuthSession?.()});
+qtSupabase.auth.onAuthStateChange((event,session)=>{if(session&&!qtLogoutInProgress)qtPersistAuthSession(session);else if(event==='SIGNED_OUT'||event==='USER_DELETED')window.QuizTownClient?.clearAuthSession?.()});
 const $=s=>document.querySelector(s),screens=['channel','shop','admin','room','game','result'];const AK='qt10Accounts',HK='qt10CoinHistory',CK='qt10ChannelChats',FK='qt10Friends',APK='qt11LastAnswerPositions',NK='qt13Notice';let currentUser=null,currentChannel=1;let state={lv:1,xp:0,coin:200,name:'도전자',room:null,score:0,combo:0,hits:0,q:0,time:7,timer:null,locked:false,deck:[],inventory:[],equipped:{hair:null,top:null,bottom:null,shoes:null,hat:null,face:null,acc:null,effect:null},consumables:{reflect:0,superhost:0,nicknameTicket:0,hintTicket:0,resetStats:0,shout:0},friends:[],requests:[],profile:'🙂',profileMessage:'',ownedProfiles:['🙂','🐶','🐱','🐰','🐸'],premiumUntil:0,baseGender:'female',scoreboard:'basic',ownedScoreboards:['basic'],characterSkin:'base',ownedCharacters:['base','char_dongdong','char_bori'],settings:{allowWhisper:true,allowDm:true,allowFriend:true}};
 const avatars=['🧑🏻','🐰','🐧','🐱','🦊','🐻','🐼','🐸','🐯','🐵'],botNames=['토끼대장','펭귄99','냥냥펀치','여우별','곰돌킹','판다맨','개굴천재','호랑펀치','몽키퀴즈'];
-const channels=[{id:1,name:'자유채널 1',online:0},{id:2,name:'자유채널 2',online:0},{id:3,name:'초보채널',online:0}];const onlineUsers=[];let rooms={1:[],2:[],3:[]};
+const channels=[{id:1,name:'자유채널',online:0},{id:2,name:'초보채널',online:0}];const onlineUsers=[];let rooms={1:[],2:[]};
 const curatedBank=[
 ['상식',1,'대한민국의 수도는?',['서울','부산','대전','광주'],0,'서울은 대한민국의 수도이며 주요 국가기관이 위치해 있습니다.'],
 ['과학',1,'물이 표준 대기압에서 어는 온도는?',['0℃','10℃','50℃','100℃'],0,'표준 대기압에서 순수한 물의 어는점은 0℃입니다.'],
@@ -566,6 +568,44 @@ $('#loginTab').onclick=()=>authMode('login');$('#signupTab').onclick=()=>authMod
 $('#signupForm').onsubmit=async e=>{e.preventDefault();let id=$('#signupId').value.trim(),pw=$('#signupPw').value,nick=$('#signupNick').value.trim();if(id.length<4||pw.length<6)return $('#authMsg').textContent='아이디 4자 이상, 비밀번호 6자 이상이 필요합니다.';if(nick.length<2)return $('#authMsg').textContent='닉네임은 2자 이상 입력해주세요.';$('#authMsg').textContent='온라인 계정을 생성하는 중...';let email=authEmailForId(id);let {data,error}=await qtSupabase.auth.signUp({email,password:pw,options:{data:{nickname:nick,login_id:id}}});if(error){$('#authMsg').textContent=error.message.includes('already')?'이미 사용 중인 아이디이거나 이메일입니다.':'회원가입 실패: '+error.message;return}if(!data.user){$('#authMsg').textContent='회원가입에 실패했습니다.';return}authMode('login');$('#loginId').value=id;$('#authMsg').textContent='온라인 회원가입 완료! 로그인해주세요.'};
 $('#loginForm').onsubmit=async e=>{e.preventDefault();await saveRememberedLogin();let id=$('#loginId').value.trim(),pw=$('#loginPw').value;$('#authMsg').textContent='온라인 서버에 로그인 중...';let {data,error}=await qtSupabase.auth.signInWithPassword({email:authEmailForId(id),password:pw});if(data?.session)await qtPersistAuthSession(data.session);if(error||!data.user){$('#authMsg').textContent='아이디 또는 비밀번호를 확인해주세요.';return}try{let p=await fetchOnlineProfile(data.user.id),a=loadAccounts(),u=a.find(x=>x.uid===data.user.id)||a.find(x=>x.id===id);if(!u){u=defaultOnlineUser(id,data.user.id,p.nickname);a.push(u)}mergeOnlineProfile(u,p);saveAccounts(a);currentUser={...u,role:normalizeRole(p.role)};document.documentElement.dataset.userRole=currentUser.role;resetSessionUI();syncUser();ensureAudio();switchBgm('lobby');$('#auth').classList.add('hidden');$('#app').classList.remove('hidden');renderChannels();renderLobby();renderNotice();show('channel');await qtStartRealtime();$('#authMsg').textContent=''}catch(err){await qtSupabase.auth.signOut();$('#authMsg').textContent='프로필 불러오기 실패: '+err.message}};
 $('#logout').onclick=async()=>{saveCurrent();syncProfileOnline();resetSessionUI();if(currentUser?.online){await qtStopRealtime();await qtSupabase.auth.signOut();await window.QuizTownClient?.clearAuthSession?.();}currentUser=null;$('#app').classList.add('hidden');$('#auth').classList.remove('hidden');authMode('login')};$('#shopBtn').onclick=()=>{clearChannelChat(currentChannel);renderShop();show('shop')};$('#shopBack').onclick=()=>{renderLobby();show('channel')};$('#adminBtn').onclick=()=>{clearChannelChat(currentChannel);renderAccounts();renderNotice();show('admin')};$('#adminBack').onclick=()=>{renderLobby();show('channel')};$('#operatorForm').onsubmit=e=>{e.preventDefault();if(currentUser.role!=='superadmin')return $('#adminMsg').textContent='최고관리자만 운영자 계정을 생성할 수 있습니다.';let id=$('#opId').value.trim(),pw=$('#opPw').value,nick=$('#opNick').value.trim(),a=loadAccounts();if(a.some(x=>x.id===id))return $('#adminMsg').textContent='이미 존재하는 아이디입니다.';if(id.length<4||pw.length<6)return $('#adminMsg').textContent='아이디 4자 이상, 비밀번호 6자 이상이 필요합니다.';a.push({id,pw,nick,role:'operator',lv:1,xp:0,coin:200,inventory:[],equipped:{hair:null,top:null,bottom:null,shoes:null,hat:null,face:null,acc:null,effect:null},consumables:{reflect:0,superhost:0,nicknameTicket:0,hintTicket:0,resetStats:0,shout:0},friends:[],requests:[],profile:'🙂',ownedProfiles:[...freeProfiles],premiumUntil:0,baseGender:'female',scoreboard:'basic',ownedScoreboards:['basic'],characterSkin:'base',ownedCharacters:['base','char_dongdong','char_bori'],totalGames:0,firstWins:0});saveAccounts(a);$('#adminMsg').textContent='운영자 '+nick+' 계정을 생성했습니다.';e.target.reset();renderAccounts()};if($('#saveNotice'))$('#saveNotice').onclick=saveNoticeText;renderNotice();localStorage.removeItem(CK);
+async function qtLogout(){
+  if(qtLogoutInProgress)return;
+  qtLogoutInProgress=true;
+  const wasOnline=!!currentUser?.online;
+  try{
+    saveCurrent();
+    await syncProfileOnline();
+    if(wasOnline){
+      try{
+        if(qtPresenceChannel)await qtPresenceChannel.untrack();
+        await qtStopRealtime();
+      }catch(error){
+        console.warn('로그아웃 Realtime 정리 실패, 전체 채널 정리를 시도합니다.',error);
+        try{await qtSupabase.removeAllChannels()}catch(channelError){console.warn('전체 Realtime 채널 정리 실패',channelError)}
+      }
+    }
+    const {error}=await qtSupabase.auth.signOut();
+    if(error){
+      console.warn('Supabase 전체 로그아웃 실패, 현재 기기 세션을 정리합니다.',error);
+      const {error:localError}=await qtSupabase.auth.signOut({scope:'local'});
+      if(localError)console.warn('Supabase 로컬 로그아웃 실패',localError);
+    }
+  }catch(error){
+    console.warn('로그아웃 처리 중 오류',error);
+  }finally{
+    try{await window.QuizTownClient?.clearAuthSession?.()}catch(error){console.warn('저장 세션 삭제 실패',error)}
+    qtLobbyChannel=null;qtPresenceChannel=null;qtShoutChannel=null;qtChatChannel=null;qtRoomChannel=null;qtCurrentRoomId=null;
+    onlineUsers.splice(0,onlineUsers.length);
+    currentUser=null;
+    resetSessionUI();
+    document.documentElement.dataset.userRole='';
+    $('#app').classList.add('hidden');
+    $('#auth').classList.remove('hidden');
+    authMode('login');
+    qtLogoutInProgress=false;
+  }
+}
+$('#logout').onclick=qtLogout;
 document.addEventListener('click',e=>{if(e.target.closest('button')&&!e.target.closest('#answers'))sfx('click')},{passive:true});
 
 // v1.19 additions
@@ -772,7 +812,7 @@ async function qtPrepareForcedUpdate(version){
         badge.textContent='업데이트 '+s.percent+'%';
       }else if(s.type==='ready'){
         badge.classList.add('qt-ready');
-        badge.textContent=s.deferred?'업데이트 준비됨 · 게임 종료 후 적용':'업데이트 적용 중';
+        badge.textContent=s.deferred?'업데이트 완료 · 앱을 재시작하면 적용됩니다.':'업데이트 적용 중';
       }else if(s.type==='error'){
         badge.classList.add('qt-update');
         badge.textContent='업데이트 확인 실패';
@@ -792,9 +832,83 @@ async function qtPrepareForcedUpdate(version){
   else bootClientBridge();
 })();
 
-function qtFitStage(){const baseW=1280,baseH=720,scale=Math.min(window.innerWidth/baseW,window.innerHeight/baseH);const target=$('#app').classList.contains('hidden')?$('#auth'):$('#app');[$('#app'),$('#auth')].forEach(el=>{if(!el)return;el.style.transform=`scale(${scale})`;el.style.width=baseW+'px';el.style.height=baseH+'px'});document.body.style.width=(baseW*scale)+'px';document.body.style.height=(baseH*scale)+'px'}
+/* v1.35.1: keep the original UI, but present it as a 1280×720 game stage. */
+const qtBaseWidth=1280,qtBaseHeight=720;
+function qtFitStage(){
+  const active=$('#app')?.classList.contains('hidden')?$('#auth'):$('#app');
+  if(!active)return;
+  active.style.width=qtBaseWidth+'px'; active.style.height=qtBaseHeight+'px';
+  const contentScale=Math.min(1,qtBaseHeight/Math.max(qtBaseHeight,active.scrollHeight));
+  const viewportScale=Math.min(window.innerWidth/qtBaseWidth,window.innerHeight/qtBaseHeight);
+  active.style.setProperty('--qt-stage-scale',String(contentScale*viewportScale));
+}
 window.addEventListener('resize',qtFitStage);setTimeout(qtFitStage,0);
 const _qtShow=show;show=function(id){_qtShow(id);document.body.classList.toggle('qt-game-mode',id==='game');requestAnimationFrame(qtFitStage)};
+
+(() => {
+  const style=document.createElement('style');
+  style.textContent=`
+    html,body{width:100%;height:100%;min-width:0!important;min-height:0!important;overflow:hidden!important}
+    #app,#auth{position:fixed!important;left:50%!important;top:50%!important;margin:0!important;max-width:none!important;transform:translate(-50%,-50%) scale(var(--qt-stage-scale,1))!important;transform-origin:center center!important;overflow:visible!important}
+    #app{padding:9px 12px 26px!important}.top{margin-bottom:7px!important}.top .stats{gap:5px}.top .stats span{padding:5px 8px}.top button{padding:6px 8px}
+    #channel{gap:8px!important}.channelTabs{margin-top:7px!important}.channelTabs button{color:#103c57!important;font-weight:1000!important;text-shadow:none!important;background:#fff!important;border-color:#3a9fca!important}.channelTabs button.active{color:#432d00!important;background:linear-gradient(#ffe36c,#f5a914)!important}
+    .lobbyGrid{gap:8px!important}.sideStack{gap:8px!important}.panel{padding:9px!important}.rooms{max-height:350px;overflow:auto}.onlineList{max-height:180px!important}.chatLog{height:118px!important}.shoutBar{display:grid!important;grid-template-columns:auto minmax(0,1fr) auto;gap:6px;align-items:center;padding:6px}.shoutBar input{min-width:0;padding:7px}.shoutBar button,.chatForm button{min-width:54px;padding:7px 10px}
+    #qtVersionBadge{position:absolute;right:14px;bottom:5px;z-index:4;color:#e5f7ff;background:#073e63cc;border:1px solid #78c9e9;border-radius:5px;padding:2px 6px;font-size:10px;font-weight:800;letter-spacing:.2px}
+    #rankingScreen{display:grid;gap:10px}.rankingTabs{display:flex;gap:8px;margin:8px 0}.rankingTabs button.active{background:linear-gradient(#ffe36c,#f5a914);color:#432d00}.leaderboardRow{display:grid;grid-template-columns:54px 1fr auto;gap:10px;align-items:center;padding:9px;border-bottom:1px solid #c8e4ef}.leaderboardRow.me{background:#e1f7ff;font-weight:900}.rankingEmpty{padding:24px;text-align:center;color:#628090}
+    .userRow.me .tag{background:#087fbe!important;color:#fff!important;border-color:#dff8ff!important;font-weight:1000}
+  `; document.head.appendChild(style);
+
+  function winRate(user){const games=Number(user?.total_games??user?.totalGames??0),wins=Number(user?.first_place_wins??user?.firstWins??0);return games>0?(wins/games)*100:0}
+  function canUseBeginner(){const games=Number(state.totalGames||0),rate=winRate(state);return games<=10||rate<30}
+  function beginnerReason(){const games=Number(state.totalGames||0),rate=winRate(state);return `초보채널은 10판 이하 또는 승률 30% 미만 사용자만 이용할 수 있습니다. 현재 ${games}판 · 승률 ${rate.toFixed(1)}%입니다.`}
+  const originalRenderChannels=renderChannels;
+  renderChannels=function(){
+    $('#channelTabs').innerHTML=channels.map(c=>`<button class="${c.id===currentChannel?'active secondary':'secondary'}" data-ch="${c.id}">${c.name} · ${c.online}명</button>`).join('');
+    document.querySelectorAll('[data-ch]').forEach(button=>button.onclick=async()=>{
+      const next=Number(button.dataset.ch);
+      if(next===2&&!canUseBeginner()){toast(beginnerReason());return}
+      clearChannelChat(currentChannel);currentChannel=next;clearChannelChat(currentChannel);renderChannels();renderLobby();if(currentUser?.online)await qtStartRealtime();
+    });
+  };
+  renderLobby=function(){const channel=channels.find(c=>c.id===currentChannel);$('#channelTitle').textContent=channel?.name||'자유채널';$('#channelCount').textContent='접속 '+Number(channel?.online||0)+'명';renderRooms();renderChannelChat();renderOnlineUsers()};
+  renderOnlineUsers=function(){
+    const el=$('#onlineList');if(!el||!currentUser)return;
+    const ownId=String(currentUser.uid||currentUser.id||'');
+    const users=[{id:ownId,name:state.name,lv:state.lv,status:state.room?'방 입장':'대기 중',avatar:state.profile||'🙂',me:true},...onlineUsers.filter(u=>String(u.id||u.user_id||'')!==ownId).map(u=>({...u,me:false}))];
+    el.innerHTML=users.map((u,i)=>`<div class="userRow ${u.me?'me':''}" data-online-index="${i}"><span class="onlineAvatar">${profileDisplay(u.avatar||'🙂')}</span><div><b>${esc(u.name)}${u.me?' (나)':''}</b><br><small>Lv.${Number(u.lv||1)} · ${esc(u.status||'대기 중')}</small></div>${u.me?'<span class="tag">ME</span>':`<button class="secondary" data-user-index="${i}">정보</button>`}</div>`).join('');
+    el.querySelectorAll('[data-user-index]').forEach(b=>b.onclick=()=>openOnlineUser(Number(b.dataset.userIndex),users));
+  };
+  const originalReceiveChannelChat=receiveChannelChat;
+  receiveChannelChat=function(payload){
+    if(payload?.type!=='dm')return originalReceiveChannelChat(payload);
+    if(String(payload.to_id||'')!==String(currentUser?.uid||''))return;
+    const name=payload.nick||'유저',history=directChats[name]||[];
+    history.push({me:false,text:String(payload.text||'').slice(0,100)});directChats[name]=history.slice(-100);
+    if($('#dmTarget')?.value===name)renderDirectChat(name);
+  };
+  sendDirectChat=async function(text){
+    const name=$('#dmTarget')?.value,target=onlineUsers.find(u=>u.name===name),message=String(text||'').trim().slice(0,100);
+    if(!name||!message)return;
+    const history=directChats[name]||[];history.push({me:true,text:message});directChats[name]=history.slice(-100);renderDirectChat(name);
+    if(!target?.id){toast('상대가 현재 채널에 접속 중일 때만 1:1 채팅을 전송할 수 있습니다.');return}
+    if(!qtChatChannel)await qtStartChat();
+    await qtChatChannel?.send({type:'broadcast',event:'message',payload:{type:'dm',to_id:target.id,sender_id:currentUser?.uid,nick:state.name,text:message,channel:currentChannel,at:Date.now()}});
+  };
+  const originalFinish=finish;
+  finish=function(){originalFinish();if(currentChannel===2&&!canUseBeginner()){toast('승률 조건 변경으로 초보채널에서 자유채널로 이동합니다. '+beginnerReason());currentChannel=1;qtStopRealtime().then(()=>qtStartRealtime());}}
+
+  const version=document.createElement('div');version.id='qtVersionBadge';version.textContent='DEV 1.35.1';$('#app')?.appendChild(version);
+  window.QuizTownClient?.onVersion?.(v=>version.textContent=v);
+
+  const ranking=document.createElement('section');ranking.id='rankingScreen';ranking.className='screen hidden';ranking.innerHTML='<div class="panel"><div class="row"><div><small>LEADERBOARD</small><h2>랭킹</h2></div><button id="rankingBack" class="secondary">로비로</button></div><div class="rankingTabs"><button class="secondary active" data-rank-kind="level">레벨 랭킹</button><button class="secondary" data-rank-kind="winrate">승률 랭킹</button></div><div id="rankingList"></div></div>';document.querySelector('#app main')?.appendChild(ranking);
+  const rankingButton=document.createElement('button');rankingButton.id='rankingBtn';rankingButton.className='secondary';rankingButton.textContent='랭킹';$('#shopBtn')?.before(rankingButton);
+  let rankingKind='level';
+  async function loadRankings(){let data=[];if(currentUser?.online){const result=await qtSupabase.from('profiles').select('id,nickname,level,total_games,first_place_wins');if(!result.error)data=result.data||[]}if(!data.length)data=loadAccounts().map(a=>({id:a.uid||a.id,nickname:a.nick,level:a.lv,total_games:a.totalGames,first_place_wins:a.firstWins}));return data}
+  async function renderRankings(){const list=$('#rankingList');list.innerHTML='<div class="rankingEmpty">랭킹을 불러오는 중...</div>';let data=await loadRankings();data=data.filter(u=>rankingKind==='level'?Number(u.level||0)>0:Number(u.total_games||0)>0);data.sort((a,b)=>rankingKind==='level'?Number(b.level||0)-Number(a.level||0)||String(a.nickname).localeCompare(String(b.nickname)):winRate(b)-winRate(a)||Number(b.total_games||0)-Number(a.total_games||0));if(!data.length){list.innerHTML='<div class="rankingEmpty">표시할 게임 기록이 없습니다.</div>';return}const own=String(currentUser?.uid||currentUser?.id||'');list.innerHTML=data.map((u,i)=>`<div class="leaderboardRow ${String(u.id)===own?'me':''}"><b>${i+1}위</b><span>${esc(u.nickname||'유저')}${String(u.id)===own?' (나)':''}</span><b>${rankingKind==='level'?'Lv. '+Number(u.level||1):winRate(u).toFixed(1)+'%'}</b></div>`).join('')}
+  rankingButton.onclick=async()=>{screens.forEach(id=>$('#'+id)?.classList.add('hidden'));ranking.classList.remove('hidden');await renderRankings();qtFitStage()};
+  $('#rankingBack').onclick=()=>{ranking.classList.add('hidden');show('channel')};
+  ranking.querySelectorAll('[data-rank-kind]').forEach(b=>b.onclick=async()=>{rankingKind=b.dataset.rankKind;ranking.querySelectorAll('[data-rank-kind]').forEach(x=>x.classList.toggle('active',x===b));await renderRankings();qtFitStage()});
+})();
 </script>
 
 </body></html>
