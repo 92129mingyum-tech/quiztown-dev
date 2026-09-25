@@ -27,7 +27,7 @@ function send(channel, payload) {
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1296, height: 759, minWidth: 976, minHeight: 579,
+    width: 1296, height: 759, minWidth: 1280, minHeight: 600,
     show: false, backgroundColor: '#052653', autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -37,7 +37,7 @@ function createWindow() {
     }
   });
   mainWindow.loadFile(path.join(root, 'game', 'index.html'));
-  mainWindow.setTitle('QuizTown');
+  mainWindow.setTitle('Q-TIME');
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
     send('client-version', cfg.displayVersion);
@@ -67,7 +67,7 @@ function installDownloadedUpdate() {
     installTriggered = true;
     try {
       // electron-updater 6.6.2 positional API:
-      // isSilent=true hides the NSIS wizard, isForceRunAfter=true relaunches QuizTown.
+      // isSilent=true hides the NSIS wizard; isForceRunAfter=true relaunches Q-TIME.
       autoUpdater.quitAndInstall(true, true);
     } catch (err) {
       updateReady = false;
@@ -128,7 +128,7 @@ ipcMain.handle('display-apply', (_e, opts = {}) => {
     mainWindow.setFullScreen(true);
   } else {
     mainWindow.setFullScreen(false);
-    const allowed = new Set(['1280x720','1600x900','1920x1080']);
+    const allowed = new Set(['1280x600','1280x720','1366x768','1600x900','1920x1080','2560x1440','3840x2160']);
     const key = allowed.has(opts.resolution) ? opts.resolution : '1280x720';
     const [w,h] = key.split('x').map(Number);
     mainWindow.setContentSize(w,h,true);

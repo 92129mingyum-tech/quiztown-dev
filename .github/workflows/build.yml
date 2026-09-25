@@ -1,4 +1,4 @@
-name: Build and Release QuizTown DEV
+name: Build and Release Q-TIME
 
 on:
   push:
@@ -23,7 +23,7 @@ jobs:
           node-version: "24"
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build and publish Windows client
         run: npm run dist:win -- --publish always

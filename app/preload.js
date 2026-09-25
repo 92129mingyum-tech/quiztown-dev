@@ -1,6 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-contextBridge.exposeInMainWorld('QuizTownClient', {
+const clientApi = {
   setGameState: state => ipcRenderer.send('game-state', state),
   onVersion: cb => ipcRenderer.on('client-version', (_e, v) => cb(v)),
   onUpdateStatus: cb => ipcRenderer.on('update-status', (_e, s) => cb(s)),
@@ -14,4 +14,7 @@ contextBridge.exposeInMainWorld('QuizTownClient', {
   saveAuthSession: session => ipcRenderer.invoke('auth-session-save', session),
   loadAuthSession: () => ipcRenderer.invoke('auth-session-load'),
   clearAuthSession: () => ipcRenderer.invoke('auth-session-clear')
-});
+};
+
+contextBridge.exposeInMainWorld('QTimeClient', clientApi);
+contextBridge.exposeInMainWorld('QuizTownClient', clientApi);

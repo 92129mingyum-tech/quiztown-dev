@@ -1,9 +1,9 @@
 {
-  "name": "quiztown-dev-client",
-  "version": "1.35.2",
-  "description": "Quiz Town development Windows client",
+  "name": "q-time-client",
+  "version": "1.0.0",
+  "description": "Q-TIME Windows client",
   "main": "app/main.js",
-  "author": "Quiz Town",
+  "author": "Q-TIME",
   "license": "UNLICENSED",
   "scripts": {
     "start": "electron .",
@@ -17,8 +17,8 @@
     "electron-builder": "^26.0.12"
   },
   "build": {
-    "appId": "kr.quiztown.client",
-    "productName": "QuizTown",
+    "appId": "kr.qtime.client",
+    "productName": "Q-TIME",
     "directories": {
       "output": "dist"
     },
@@ -38,7 +38,7 @@
           ]
         }
       ],
-      "artifactName": "QuizTown-Dev-${version}-Setup.${ext}"
+      "artifactName": "Q-TIME-${version}-Setup.${ext}"
     },
     "nsis": {
       "oneClick": true,
@@ -47,7 +47,7 @@
       "displayLanguageSelector": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "QuizTown DEV",
+      "shortcutName": "Q-TIME",
       "deleteAppDataOnUninstall": false
     },
     "publish": [
@@ -60,4 +60,3 @@
     ]
   }
 }
-

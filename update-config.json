@@ -1,8 +1,7 @@
 {
-  "channel": "dev",
-  "build": 135,
-  "version": "1.35.1",
-  "displayVersion": "DEV 1.35.1",
+  "build": 100,
+  "version": "1.0.0",
+  "displayVersion": "Q-TIME 1.00",
   "checkIntervalMs": 60000,
   "provider": "github",
   "owner": "92129mingyum-tech",
