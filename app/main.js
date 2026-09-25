@@ -85,7 +85,7 @@ ipcMain.handle('auth-session-clear', () => { try{fs.rmSync(authSessionPath(),{fo
 
 ipcMain.on('game-state', (_e, state) => {
   gameActive = state === 'playing';
-  if (!gameActive && updateReady) autoUpdater.quitAndInstall(false, true);
+  if (!gameActive && updateReady) autoUpdater.quitAndInstall(true, true);
 });
 
 ipcMain.handle('display-get', () => ({
@@ -114,12 +114,12 @@ autoUpdater.on('update-available', info => {
   send('force-update', {version: info.version});
   send('update-status', {type:'available', version:info.version, forced:true});
 });
-autoUpdater.on('download-progress', p => send('update-status', {type:'progress', percent:Math.round(p.percent)}));
+autoUpdater.on('download-progress', p => send('update-status', {type:'progress', percent:Math.round(p.percent), transferred:p.transferred, total:p.total, bytesPerSecond:p.bytesPerSecond}));
 autoUpdater.on('update-downloaded', info => {
   updateReady = true;
   send('update-status', {type:'ready', version:info.version, deferred:false, forced:true});
   // A published update is mandatory: all connected clients leave realtime/game and restart on the new build.
-  setTimeout(() => autoUpdater.quitAndInstall(false, true), 700);
+  setTimeout(() => autoUpdater.quitAndInstall(true, true), 700);
 });
 autoUpdater.on('error', err => send('update-status', {type:'error', message:String(err.message || err)}));
 

@@ -1,0 +1,9 @@
+QuizTown DEV 1.35
+
+- 1280x720 logical stage scaling centered with letterbox; fixed lobby bottom chat/shout clipping.
+- Channel list simplified to 자유채널 / 초보채널 and improved contrast.
+- 초보채널 requires at least 10 games and first-place win rate <= 20%.
+- Client version displayed at bottom-right.
+- Updater UI changed to game-style patch progress; NSIS update install requested silently.
+- Fixed Supabase safeStorage session race: INITIAL_SESSION(null) no longer deletes saved session.
+- Room creation now requires/restores an authenticated Supabase session before RPC.
