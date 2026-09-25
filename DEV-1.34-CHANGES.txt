@@ -1,0 +1,6 @@
+QuizTown DEV 1.34
+- Supabase session is now encrypted/persisted through Electron safeStorage.
+- Protected room API calls restore/require the authenticated session before querying Supabase.
+- Removed misleading fixed DEV 1.32 SQL room-creation error message; real server error is shown.
+- Added GitHub Actions Windows build/release workflow.
+- package version/update config bumped to 1.34.0 / build 134.

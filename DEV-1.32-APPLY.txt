@@ -1,0 +1,15 @@
+QuizTown DEV 1.32 적용 순서
+1) Supabase Dashboard > SQL Editor에서 SUPABASE-DEV-1.32.sql 전체 실행
+2) Windows에서 BUILD-QUIZTOWN-WINDOWS.cmd 실행
+3) dist/QuizTown-Dev-1.32.0-Setup.exe 설치
+4) 서로 다른 계정으로 클라이언트 2개 로그인
+5) 양쪽 '현재 접속자'가 2명인지 확인
+6) A에서 방 생성 -> B에서 방 표시 -> B 입장 확인
+
+DEV 1.32 핵심 수정
+- 1.31에서 로그인 후 qtStartRealtime()이 호출되지 않던 문제 수정
+- 채널 이동 시 Presence 재구독
+- qt_create_room RPC와 DB 스키마를 맞추는 SQL 포함
+- RPC 미설치 시 직접 insert fallback 추가
+- 게임 시작 시 상단 헤더/티커를 접고 720p 한 화면 안에 플레이어/문제/4개 선택지 고정
+- 방 만들기/설정 모달의 화면 밖 잘림 완화

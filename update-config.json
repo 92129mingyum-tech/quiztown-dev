@@ -1,0 +1,10 @@
+{
+  "channel": "dev",
+  "build": 134,
+  "version": "1.34.0",
+  "displayVersion": "DEV 1.34",
+  "checkIntervalMs": 60000,
+  "provider": "github",
+  "owner": "92129mingyum-tech",
+  "repo": "quiztown-dev"
+}

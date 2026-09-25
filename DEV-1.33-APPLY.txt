@@ -1,0 +1,7 @@
+QuizTown DEV 1.33
+
+1) Supabase SQL Editor에서 SUPABASE-DEV-1.33.sql 전체를 1회 실행하세요.
+2) BUILD-QUIZTOWN-WINDOWS.cmd 실행.
+3) dist의 Setup.exe / blockmap / latest.yml을 GitHub Release v1.33.0에 게시하세요.
+
+주요 수정: 실시간 채널/귓속말/방채팅, 일반방 생성 v2, 온라인 CPU방, 1280x720 고정 논리화면 스케일, 버전표시 제거/Q 전구 로고, 확성기 3초+0.5초 큐 간격.
